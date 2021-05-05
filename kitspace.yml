@@ -1,3 +1,3 @@
-gerbers: https://github.com/jharwinbarrozo/3-ch-diversity-system/GerberFiles
+gerbers: GerberFiles
 color: blue
-bom: https://github.com/jharwinbarrozo/3-ch-diversity-system/fpv-diversity.tsv
+bom: fpv-diversity.tsv
