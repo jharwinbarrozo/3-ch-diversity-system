@@ -1,7 +1,7 @@
 summary: 3 Channel Automatic FPV Video Selector Diversity System
 gerbers: GerberFiles
 color: blue
-bom: fpv-diversity.tsv
+bom: 1-click-bom.csv
 eda:
   type: eagle
   pcb: fpv-diversity.brd
