@@ -6,7 +6,7 @@
 // is chosen.
 //
 // Hardware:
-//    - NodeMCU / Wemos D1 (ESP8266) running at 160Mhz
+//    - Wemos D1 mini clone (ESP8266) running at 160Mhz
 //    - Video switch: Max4545
 //      (allows to commute 4 sources -- but code is here for 3 sources)
 //    - 3 LM1881, to generate the line sync. pulses
@@ -23,25 +23,17 @@
 #define SERIAL_DEBUG
 
 //Pin connected to the LM1881 sync outputs
-//#define PIN_SyncA D1  //GPIO5=D1
-//#define PIN_SyncB D2  //GPIO4=D2
-//#define PIN_SyncC D6
+#define PIN_SyncA D2  // BPOUT1
+#define PIN_SyncB D3  // BPOUT2
+#define PIN_SyncC D7 // BPOUT3
 
-#define PIN_SyncA D2  //GPIO5=D1
-#define PIN_SyncB D3  //GPIO4=D2
-#define PIN_SyncC D4
 
 //Pin connected to the MAX4545 (switch) pin that selects the desired source
-//#define PIN_selectA D3    //GPIO0=D3
-//#define PIN_selectB D7    //GPIO13=D7
-//#define PIN_selectC D5    //GPIO14=D5
+#define PIN_selectA D1    //IN1
+#define PIN_selectB D5    //IN2
+#define PIN_selectC D6   //IN3
 
-#define PIN_selectA D1    //GPIO0=D3
-#define PIN_selectB D5    //GPIO13=D7
-#define PIN_selectC D6    //GPIO14=D5
-
-#define PIN_ESP_LED D0    //GPIO16=D0
-//#define PIN_ESP_LED2 D4    //GPIO2=D4
+#define PIN_ESP_LED D4    //BUILTIN-LED = wemos d1 mini clone
 
 // keyword "Volatile" means that this variable may be changed by a routine called by some interrupt.
 volatile unsigned long lastA; // Time of the last sync signal
@@ -159,7 +151,7 @@ PeriodicTask T;
 
 //--------Count---------------------------------------------------------
 //-----------------------------------------------------------------
-ICACHE_RAM_ATTR void CountA() {
+IRAM_ATTR void CountA() {
   const unsigned long  now = micros();
   const long period = now - lastA;
   lastA = now;
@@ -168,7 +160,7 @@ ICACHE_RAM_ATTR void CountA() {
   AA.addValue(period);
 #endif
 }
-ICACHE_RAM_ATTR void CountB() {
+IRAM_ATTR void CountB() {
   const unsigned long now = micros();
   const long period = now - lastB;
   lastB = now;
@@ -177,7 +169,7 @@ ICACHE_RAM_ATTR void CountB() {
   BB.addValue(period);
 #endif
 }
-ICACHE_RAM_ATTR void CountC() {
+IRAM_ATTR void CountC() {
   const unsigned long now = micros();
   const long period = now - lastC;
   lastC = now;
@@ -202,9 +194,9 @@ void setup() {
   lastB = 0; // Time of the last signal on sensor B
   lastC = 0; // Time of the last signal on sensor C
 
-  pinMode(PIN_SyncA, INPUT_PULLUP);
-  pinMode(PIN_SyncB, INPUT_PULLUP);
-  pinMode(PIN_SyncC, INPUT_PULLUP);
+  pinMode(PIN_SyncA, INPUT);
+  pinMode(PIN_SyncB, INPUT);
+  pinMode(PIN_SyncC, INPUT);
 
   pinMode(PIN_selectA, OUTPUT);
   pinMode(PIN_selectB, OUTPUT);
