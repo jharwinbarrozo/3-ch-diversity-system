@@ -11,6 +11,7 @@
 //      (allows to commute 4 sources -- but code is here for 3 sources)
 //    - 3 LM1881, to generate the line sync. pulses
 //
+// https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/
 // ====================================================================
 
 #include <ESP8266WiFi.h>
@@ -20,20 +21,19 @@
 #define N 500
 
 //Un-comment the line below in order to get some debug prints on the serial output
-#define SERIAL_DEBUG
+//#define SERIAL_DEBUG
 
-//Pin connected to the LM1881 sync outputs
+//Pin connected to the LM1881 sync outputs (INPUTS for mcu)
 #define PIN_SyncA D2  // BPOUT1
-#define PIN_SyncB D3  // BPOUT2
-#define PIN_SyncC D7 // BPOUT3
+#define PIN_SyncB D7  // D3 // BPOUT2
+#define PIN_SyncC D4 // D4 // BPOUT3
 
-
-//Pin connected to the MAX4545 (switch) pin that selects the desired source
+//Pin connected to the MAX4545 (switch) pin that selects the desired source (OUTPUT for MCU)
 #define PIN_selectA D1    //IN1
 #define PIN_selectB D5    //IN2
 #define PIN_selectC D6   //IN3
 
-#define PIN_ESP_LED D4    //BUILTIN-LED = wemos d1 mini clone
+//#define PIN_ESP_LED D4    //BUILTIN-LED = wemos d1 mini clone
 
 // keyword "Volatile" means that this variable may be changed by a routine called by some interrupt.
 volatile unsigned long lastA; // Time of the last sync signal
@@ -201,14 +201,14 @@ void setup() {
   pinMode(PIN_selectA, OUTPUT);
   pinMode(PIN_selectB, OUTPUT);
   pinMode(PIN_selectC, OUTPUT);
-  pinMode(PIN_ESP_LED, OUTPUT);
+//  pinMode(PIN_ESP_LED, OUTPUT);
 
   selected = sourceB;
   //Some blinking to start
   for (int i = 0; i < 3; i++) {
-    SwitchTo(sourceA); delay(250);
-    SwitchTo(sourceB); delay(250);
-    SwitchTo(sourceC); delay(250);
+    SwitchTo(sourceA); delay(50);
+    SwitchTo(sourceB); delay(50);
+    SwitchTo(sourceC); delay(50);
   }
   //Declare 3 interrupts, to measure the duration between horizontal sync. pulses
   //on the 3 sources
@@ -223,10 +223,10 @@ void setup() {
 
 int z = 1;
 void loop() {
-  if (millis() > lastMillis + 1000) {
-    ESP.wdtFeed();
+  if (millis() > lastMillis + 500) {
+    //ESP.wdtFeed();
     // Some blinking of the bluit-in led
-    if (z == 1) digitalWrite(PIN_ESP_LED, HIGH); else digitalWrite(PIN_ESP_LED, LOW); z = -z;
+//   if (z == 1) digitalWrite(PIN_ESP_LED, HIGH); else digitalWrite(PIN_ESP_LED, LOW); z = -z;
     lastMillis = millis();
 #ifdef SERIAL_DEBUG
     //Prints some debug information to the serial output, every 1000 milli sec.

@@ -1,7 +1,7 @@
 {
     "Header": {
         "Comment": "All values are metric (mm)",
-        "CreationDate": "2021-05-18T18:16:03Z",
+        "CreationDate": "2021-05-30T07:13:59Z",
         "GenerationSoftware": {
             "Application": "EAGLE",
             "Vendor": "Autodesk",
@@ -15,7 +15,7 @@
         "Name": {
             "ProjectId": "fpv-diversity"
         },
-        "Owner": "jharwinbarrozo jharwinbarrozo <jharwinbarrozo@gmail.com>",
+        "Owner": "jharwin barrozo <jharwinbarrozo@gmail.com>",
         "Size": {
             "X": 56,
             "Y": 93
