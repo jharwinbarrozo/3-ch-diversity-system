@@ -1,26 +1,8 @@
-// 3 channel Video Diversity Controller
-
-// selects the best video signal, based on the detection
-// of line sync. pulses (coming from using LM1881 chpis).
-// The souce with the most 'regular' pulses (in the last few hundered lines)
-// is chosen.
-//
-// Hardware:
-//    - Wemos D1 mini clone (ESP8266) running at 160Mhz
-//    - Video switch: Max4545
-//      (allows to commute 4 sources -- but code is here for 3 sources)
-//    - 3 LM1881, to generate the line sync. pulses
-//
-// https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/
-// ====================================================================
-
+#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include "user_interface.h"
 
-//N is the number of video lines that are averaged over to decide which video source has the highest quality
 #define N 500
-
-//Un-comment the line below in order to get some debug prints on the serial output
 //#define SERIAL_DEBUG
 
 //Pin connected to the LM1881 sync outputs (INPUTS for mcu)
@@ -32,8 +14,6 @@
 #define PIN_selectA D1    //IN1
 #define PIN_selectB D5    //IN2
 #define PIN_selectC D6   //IN3
-
-//#define PIN_ESP_LED D4    //BUILTIN-LED = wemos d1 mini clone
 
 // keyword "Volatile" means that this variable may be changed by a routine called by some interrupt.
 volatile unsigned long lastA; // Time of the last sync signal
@@ -56,10 +36,8 @@ const long unsigned mis = mus / 1000; //same as above, in milli sec.
 #define sourceB 1
 #define sourceC 2
 int selected;
-
 unsigned long lastMillis;
 
-//-----------------------------------------------------------------
 //-----------------------------------------------------------------
 class ExpAverage {
   private:
@@ -78,14 +56,13 @@ class ExpAverage {
 };
 
 //-----------------------------------------------------------------
-//-----------------------------------------------------------------
 ExpAverage A(N), B(N), C(N);//Average video line duration for the different sources
 #ifdef SERIAL_DEBUG
 ExpAverage AA(N), BB(N), CC(N);//Average video line duration for the different sources
 #endif
 //-----------------------------------------------------------------
-//-----------------------------------------------------------------
 
+//-----------------------------------------------------------------
 const int CLEAR = (1 << PIN_selectA) + (1 << PIN_selectB) + (1 << PIN_selectC);
 int Bin[3] = {1 << PIN_selectA , 1 << PIN_selectB, 1 << PIN_selectC};
 inline void SwitchTo(int s) {
@@ -95,8 +72,8 @@ inline void SwitchTo(int s) {
     GPOS = Bin[s];
   }
 }
-
 //-----------------------------------------------------------------
+
 //-----------------------------------------------------------------
 class PeriodicTask {
   private:
