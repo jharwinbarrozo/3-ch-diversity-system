@@ -11,24 +11,18 @@
 #define PIN_SyncC D4 // D4 // BPOUT3
 
 //Pin connected to the MAX4545 (switch) pin that selects the desired source (OUTPUT for MCU)
-#define PIN_selectA D1    //IN1
-#define PIN_selectB D5    //IN2
+#define PIN_selectA D1   //IN1
+#define PIN_selectB D5   //IN2
 #define PIN_selectC D6   //IN3
 
 // keyword "Volatile" means that this variable may be changed by a routine called by some interrupt.
 volatile unsigned long lastA; // Time of the last sync signal
-//volatile long periodA;// Period of the last video line, in microseconds
-
 volatile unsigned long lastB; // Time of the last sync signal
-//volatile long periodB;// Period of the last video line, in microseconds
-
 volatile unsigned long lastC; // Time of the last sync signal
-//volatile long periodC;// Period of the last video line, in microseconds
 
 unsigned long now;
 
 #define t0 63
-//const long t0 = 63;
 const long unsigned mus = t0 * N; //Period to update the selected source, in micro sec.
 const long unsigned mis = mus / 1000; //same as above, in milli sec.
 
@@ -102,7 +96,6 @@ class PeriodicTask {
         if (avC < avB)
         {
           SwitchTo(sourceC);
-          //Serial.println(avA); Serial.println(avB); Serial.println(avC);
         }
         else {
           SwitchTo(sourceB);
@@ -112,7 +105,6 @@ class PeriodicTask {
         if (avA < avC)
           SwitchTo(sourceA); else {
             SwitchTo(sourceC);
-            //Serial.println(avA); Serial.println(avB); Serial.println(avC);
           }
       }
     }
@@ -127,7 +119,6 @@ class PeriodicTask {
 PeriodicTask T;
 
 //--------Count---------------------------------------------------------
-//-----------------------------------------------------------------
 IRAM_ATTR void CountA() {
   const unsigned long  now = micros();
   const long period = now - lastA;
@@ -155,7 +146,6 @@ IRAM_ATTR void CountC() {
   CC.addValue(period);
 #endif
 }
-//-----------------------------------------------------------------
 //-----------------------------------------------------------------
 
 void setup() {
@@ -228,9 +218,8 @@ void loop() {
     Serial.print(avC);
     const float avCC = CC.getAverage();
     Serial.print(" - "); Serial.println(avCC);
-
-
     Serial.println("");
+    
 #endif
   }
   yield();
