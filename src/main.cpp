@@ -1,4 +1,4 @@
-// 3 channel Video Diversity Controller
+// 3 channel Video Diversity Controller v1.1
 // selects the best video signal, based on the detection
 // of line sync. pulses (coming from using LM1881 chpis).
 // The souce with the most 'regular' pulses (in the last few hundered lines)
@@ -23,11 +23,12 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_I2CDevice.h>
 
+const int I2C_DISPLAY_ADDRESS = 0x3C;
 #define ENABLED_OLED
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-// 'flux_logo', 128x64px
+// flux_logo, 128x64px
 const unsigned char fluxLogo [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -103,8 +104,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 //Pin connected to the LM1881 sync outputs (INPUTS for mcu)
 #define PIN_SyncA D2  // BPOUT1
-#define PIN_SyncB D7  // D3 // BPOUT2
-#define PIN_SyncC D4 // D4 // BPOUT3
+#define PIN_SyncB D7  // BPOUT2
+#define PIN_SyncC D4  // BPOUT3
 
 //Pin connected to the MAX4545 (switch) pin that selects the desired source (OUTPUT for MCU)
 #define PIN_selectA D1   //IN1
@@ -170,7 +171,7 @@ class PeriodicTask {
     os_timer_t myTimer;
     int t;
   public:
-    //-----------------------------
+    //----------------------------------------------------------------
     static void DoTask(void *pArg) {//static needed here, because below we want to pass a pointer to this member function
       const unsigned long  now = micros();
       if (now - lastA > mus) {
@@ -204,7 +205,7 @@ class PeriodicTask {
           }
       }
     }
-    //-----------------------------
+    //----------------------------------------------------------------
     PeriodicTask () {
       os_timer_setfn(&myTimer, DoTask, NULL);
     }
@@ -242,7 +243,7 @@ IRAM_ATTR void CountC() {
   CC.addValue(period);
 #endif
 }
-//-----------------------------------------------------------------
+//---------Setup--------------------------------------------------------
 
 void setup() {
   WiFi.mode(WIFI_OFF);
@@ -254,7 +255,7 @@ void setup() {
   Wire.begin(1,3);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
+  if(!display.begin(SSD1306_SWITCHCAPVCC, I2C_DISPLAY_ADDRESS)) {
     for(;;); // Don't proceed, loop forever
   }
   // Display start up..
@@ -301,21 +302,67 @@ void setup() {
   T.Start(mis, true); //Start the process that updates the selected source every 'mis' milliseconds (timer-based)
 }
 //-----------------------------------------------------------------
-//-----------------------------------------------------------------
 
 void loop() {
 #ifdef ENABLED_OLED
-  const float avAA = AA.getAverage();
-  const float avBB = BB.getAverage();
-  const float avCC = CC.getAverage();
+    const float avAA = AA.getAverage();
+    const float avBB = BB.getAverage();
+    const float avCC = CC.getAverage();
 
     //Prints some debug information to the serial output, every 1000 milli sec.
     display.clearDisplay();
 
-    display.fillRect(80, 0, 50, 52, WHITE);
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(6,6);
+    display.print("ACTIVE");
+
+    // 3 small boxes with border
+    display.drawRect(47, 6, 5, 7, WHITE);
+    display.drawRect(56, 6, 5, 7, WHITE);
+    display.drawRect(65, 6, 5, 7, WHITE);
+
+    // Box wrapper with border
     display.drawRect(0, 0, 75, 52, WHITE);
+    
+    display.setTextSize(3);
+    display.setCursor(5,13);
+    display.print("v");
+    display.setTextSize(4);
+    display.setCursor(24,18);
+    display.print("R");
+    display.setCursor(49,18);
+    display.print("X");
+
+    //triangle shape to cut the solid box
     display.fillTriangle(118, 0, 128, 0, 128, 10, BLACK);
 
+    //solid white wrapper for the huge 1,2,3
+    display.fillRect(80, 0, 50, 52, WHITE);
+    
+      if (selected == sourceA) {
+        display.fillRect(47, 6, 5, 7, WHITE); // fill for small box
+        display.setTextSize(6);
+        display.setCursor(89,6);
+        display.setTextColor(BLACK);
+        display.print("1");
+      }
+      if (selected == sourceB) {
+        display.fillRect(56, 6, 5, 7, WHITE); // fill for small box
+        display.setTextSize(6);
+        display.setCursor(89,6);
+        display.setTextColor(BLACK);
+        display.print("2");
+      }
+      if (selected == sourceC) {
+        display.fillRect(65, 6, 5, 7, WHITE); // fill for small box
+        display.setTextSize(6);
+        display.setCursor(89,6);
+        display.setTextColor(BLACK);
+        display.print("3");
+      }
+
+    // Averages of rx1, rx2, rx3 at the bottom
     display.setTextSize(1);
     display.setTextColor(WHITE);
     // RX1
@@ -327,48 +374,7 @@ void loop() {
     //RX3
     display.setCursor(100,56);
     display.print(avCC);
-
-    display.setTextColor(SSD1306_WHITE);
-    display.setTextSize(1);
-    display.setCursor(6,6);
-    display.print("ACTIVE");
-
-    display.drawRect(47, 6, 5, 7, WHITE);
-    display.drawRect(56, 6, 5, 7, WHITE);
-    display.drawRect(65, 6, 5, 7, WHITE);
-
-
-    display.setTextSize(3);
-    display.setCursor(5,13);
-    display.print("v");
-    display.setTextSize(4);
-    display.setCursor(24,18);
-    display.print("R");
-    display.setCursor(49,18);
-    display.print("X");
-
-        if (selected == sourceA) {
-          display.fillRect(47, 6, 5, 7, WHITE);
-          display.setTextSize(6);
-          display.setCursor(89,6);
-          display.setTextColor(BLACK);
-          display.print("1");
-        }
-        if (selected == sourceB) {
-          display.fillRect(56, 6, 5, 7, WHITE);
-          display.setTextSize(6);
-          display.setCursor(89,6);
-          display.setTextColor(BLACK);
-          display.print("2");
-        }
-        if (selected == sourceC) {
-          display.fillRect(65, 6, 5, 7, WHITE);
-          display.setTextSize(6);
-          display.setCursor(89,6);
-          display.setTextColor(BLACK);
-          display.print("3");
-        }
-        display.display();
+      display.display();
 #endif
   yield();
 }
