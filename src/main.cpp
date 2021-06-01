@@ -268,8 +268,8 @@ void setup() {
   display.println("Controller V1.1");
   display.display(); delay(1500);
   display.clearDisplay();
-  display.drawBitmap(0, 0, fluxLogo, 128, 64, WHITE);
-  display.display(); delay(1000);
+  display.drawBitmap(0, 0, fluxLogo, 128, 64, SSD1306_WHITE);
+  display.display();
 
 
 #endif
@@ -288,7 +288,7 @@ void setup() {
 
   selected = sourceB;
   //Some blinking to start
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 4; i++) {
     SwitchTo(sourceA); delay(250);
     SwitchTo(sourceB); delay(250);
     SwitchTo(sourceC); delay(250);
@@ -318,12 +318,12 @@ void loop() {
     display.print("ACTIVE");
 
     // 3 small boxes with border
-    display.drawRect(47, 6, 5, 7, WHITE);
-    display.drawRect(56, 6, 5, 7, WHITE);
-    display.drawRect(65, 6, 5, 7, WHITE);
+    display.drawRect(47, 6, 5, 7, SSD1306_WHITE);
+    display.drawRect(56, 6, 5, 7, SSD1306_WHITE);
+    display.drawRect(65, 6, 5, 7, SSD1306_WHITE);
 
     // Box wrapper with border
-    display.drawRect(0, 0, 75, 52, WHITE);
+    display.drawRect(0, 0, 75, 52, SSD1306_WHITE);
     
     display.setTextSize(3);
     display.setCursor(5,13);
@@ -334,37 +334,40 @@ void loop() {
     display.setCursor(49,18);
     display.print("X");
 
-    //triangle shape to cut the solid box
-    display.fillTriangle(118, 0, 128, 0, 128, 10, BLACK);
-
     //solid white wrapper for the huge 1,2,3
-    display.fillRect(80, 0, 50, 52, WHITE);
+    display.fillRect(80, 0, 50, 52, SSD1306_WHITE);
     
       if (selected == sourceA) {
-        display.fillRect(47, 6, 5, 7, WHITE); // fill for small box
+        //triangle shape to cut the solid box
+        display.fillTriangle(118, 0, 128, 0, 128, 10, SSD1306_BLACK);
+        display.fillRect(47, 6, 5, 7, SSD1306_WHITE); // fill for small box
         display.setTextSize(6);
         display.setCursor(89,6);
-        display.setTextColor(BLACK);
+        display.setTextColor(SSD1306_BLACK);
         display.print("1");
       }
       if (selected == sourceB) {
-        display.fillRect(56, 6, 5, 7, WHITE); // fill for small box
+        //triangle shape to cut the solid box
+        display.fillTriangle(118, 0, 128, 0, 128, 10, SSD1306_BLACK);
+        display.fillRect(56, 6, 5, 7, SSD1306_WHITE); // fill for small box
         display.setTextSize(6);
         display.setCursor(89,6);
-        display.setTextColor(BLACK);
+        display.setTextColor(SSD1306_BLACK);
         display.print("2");
       }
       if (selected == sourceC) {
-        display.fillRect(65, 6, 5, 7, WHITE); // fill for small box
+        //triangle shape to cut the solid box
+        display.fillTriangle(118, 0, 128, 0, 128, 10, SSD1306_BLACK);
+        display.fillRect(65, 6, 5, 7, SSD1306_WHITE); // fill for small box
         display.setTextSize(6);
         display.setCursor(89,6);
-        display.setTextColor(BLACK);
+        display.setTextColor(SSD1306_BLACK);
         display.print("3");
       }
 
-    // Averages of rx1, rx2, rx3 at the bottom
+    // Average values of rx1, rx2, rx3 at the bottom
     display.setTextSize(1);
-    display.setTextColor(WHITE);
+    display.setTextColor(SSD1306_WHITE);
     // RX1
     display.setCursor(3,56);
     display.print(avAA);
