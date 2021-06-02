@@ -16,12 +16,16 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include "user_interface.h"
-
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_I2CDevice.h>
+
+const String PROJECT_NAME_LN1 = "3-Channel Diversity";
+const String PROJECT_NAME_LN2 = "Controller ";
+const String VERSION = "v1.2";
+const String CREATOR = "github/jharwinbarrozo";
 
 const int I2C_DISPLAY_ADDRESS = 0x3C;
 #define ENABLED_OLED
@@ -103,14 +107,14 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #define N 500
 
 //Pin connected to the LM1881 sync outputs (INPUTS for mcu)
-#define PIN_SyncA D2  // BPOUT1
-#define PIN_SyncB D7  // BPOUT2
-#define PIN_SyncC D4  // BPOUT3
+#define PIN_SyncA D2 // BPOUT1
+#define PIN_SyncB D7 // BPOUT2
+#define PIN_SyncC D4 // BPOUT3
 
 //Pin connected to the MAX4545 (switch) pin that selects the desired source (OUTPUT for MCU)
-#define PIN_selectA D1   //IN1
-#define PIN_selectB D5   //IN2
-#define PIN_selectC D6   //IN3
+#define PIN_selectA D1 // IN1
+#define PIN_selectB D5 // IN2
+#define PIN_selectC D6 // IN3
 
 // keyword "Volatile" means that this variable may be changed by a routine called by some interrupt.
 volatile unsigned long lastA; // Time of the last sync signal
@@ -120,8 +124,8 @@ volatile unsigned long lastC; // Time of the last sync signal
 unsigned long now;
 
 #define t0 63
-const long unsigned mus = t0 * N; //Period to update the selected source, in micro sec.
-const long unsigned mis = mus / 1000; //same as above, in milli sec.
+const long unsigned mus = t0 * N; // Period to update the selected source, in micro sec.
+const long unsigned mis = mus / 1000; // same as above, in milli sec.
 
 #define sourceA 0
 #define sourceB 1
@@ -135,7 +139,7 @@ class ExpAverage {
     volatile float x;
     const float a, b;
   public:
-    ExpAverage(int n): a(1.0f / n), b(1.0f - a) { //exponential average over the ~n previous values
+    ExpAverage(int n): a(1.0f / n), b(1.0f - a) { // exponential average over the ~n previous values
       x = 0.0f;
     }
     inline float getAverage() {
@@ -146,14 +150,14 @@ class ExpAverage {
     }
 };
 
-//-----------------------------------------------------------------
-ExpAverage A(N), B(N), C(N);//Average video line duration for the different sources
+//------------------------------------------------------------------------
+ExpAverage A(N), B(N), C(N);// Average video line duration for the different sources
 #ifdef ENABLED_OLED
-ExpAverage AA(N), BB(N), CC(N);//Average video line duration for the different sources
+ExpAverage AA(N), BB(N), CC(N);// Average video line duration for the different sources
 #endif
-//-----------------------------------------------------------------
+//------------------------------------------------------------------------
 
-//-----------------------------------------------------------------
+//------------------------------------------------------------------------
 const int CLEAR = (1 << PIN_selectA) + (1 << PIN_selectB) + (1 << PIN_selectC);
 int Bin[3] = {1 << PIN_selectA , 1 << PIN_selectB, 1 << PIN_selectC};
 inline void SwitchTo(int s) {
@@ -163,15 +167,15 @@ inline void SwitchTo(int s) {
     GPOS = Bin[s];
   }
 }
-//-----------------------------------------------------------------
+//------------------------------------------------------------------------
 
-//-----------------------------------------------------------------
+//------------------------------------------------------------------------
 class PeriodicTask {
   private:
     os_timer_t myTimer;
     int t;
   public:
-    //----------------------------------------------------------------
+    //---------------------------------------------------------------------
     static void DoTask(void *pArg) {//static needed here, because below we want to pass a pointer to this member function
       const unsigned long  now = micros();
       if (now - lastA > mus) {
@@ -215,7 +219,7 @@ class PeriodicTask {
 };
 PeriodicTask T;
 
-//--------Count---------------------------------------------------------
+//----------------------------Count-------------------------------------
 IRAM_ATTR void CountA() {
   const unsigned long  now = micros();
   const long period = now - lastA;
@@ -243,15 +247,15 @@ IRAM_ATTR void CountC() {
   CC.addValue(period);
 #endif
 }
-//---------Setup--------------------------------------------------------
+//-----------------------------Setup------------------------------------
 
 void setup() {
-  WiFi.mode(WIFI_OFF);
-  WiFi.forceSleepBegin();
+ WiFi.mode(WIFI_OFF);
+ WiFi.forceSleepBegin();
 
 #ifdef ENABLED_OLED
-  // To change the default i2c pins (SDA D2, SCL D1) to TX (gpio1) and RX (gpio3)
-  // Wire.begin(sda int, scl int);
+// To change the default i2c pins (SDA D2, SCL D1) to TX (gpio1) and RX (gpio3)
+// Wire.begin(sda int, scl int);
   Wire.begin(1,3);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -260,18 +264,22 @@ void setup() {
   }
   // Display start up..
   display.clearDisplay();
-  display.setTextSize(1);
+  display.setTextSize(1.2);
   display.setTextColor(SSD1306_WHITE);
-  display.setCursor(10,20);  
-  display.println("FPV Diversity");
-  display.setCursor(10,30); 
-  display.println("Controller V1.1");
-  display.display(); delay(1500);
+  display.drawRect(0,0,128,36,WHITE);
+  display.setCursor(8,9);  
+  display.print(PROJECT_NAME_LN1);
+  display.setCursor(20,19);  
+  display.print(PROJECT_NAME_LN2);
+  display.print(VERSION);
+  display.setCursor(0,42);
+  display.println("Designed by: ");
+  display.setCursor(0,52);
+  display.print(CREATOR);
+  display.display(); delay(5000);
   display.clearDisplay();
   display.drawBitmap(0, 0, fluxLogo, 128, 64, SSD1306_WHITE);
   display.display();
-
-
 #endif
 
   lastA = 0; // Time of the last signal on sensor A
@@ -318,9 +326,9 @@ void loop() {
     display.print("ACTIVE");
 
     // 3 small boxes with border
-    display.drawRect(47, 6, 5, 7, SSD1306_WHITE);
-    display.drawRect(56, 6, 5, 7, SSD1306_WHITE);
-    display.drawRect(65, 6, 5, 7, SSD1306_WHITE);
+    display.drawCircle(48, 9, 3, SSD1306_WHITE);
+    display.drawCircle(57, 9, 3, SSD1306_WHITE);
+    display.drawCircle(66, 9, 3, SSD1306_WHITE);
 
     // Box wrapper with border
     display.drawRect(0, 0, 75, 52, SSD1306_WHITE);
@@ -336,11 +344,10 @@ void loop() {
 
     //solid white wrapper for the huge 1,2,3
     display.fillRect(80, 0, 50, 52, SSD1306_WHITE);
-    
       if (selected == sourceA) {
         //triangle shape to cut the solid box
         display.fillTriangle(118, 0, 128, 0, 128, 10, SSD1306_BLACK);
-        display.fillRect(47, 6, 5, 7, SSD1306_WHITE); // fill for small box
+        display.fillCircle(48, 9, 3, SSD1306_WHITE); // fill for small box
         display.setTextSize(6);
         display.setCursor(89,6);
         display.setTextColor(SSD1306_BLACK);
@@ -349,7 +356,7 @@ void loop() {
       if (selected == sourceB) {
         //triangle shape to cut the solid box
         display.fillTriangle(118, 0, 128, 0, 128, 10, SSD1306_BLACK);
-        display.fillRect(56, 6, 5, 7, SSD1306_WHITE); // fill for small box
+        display.fillCircle(57, 9, 3, SSD1306_WHITE); // fill for small box
         display.setTextSize(6);
         display.setCursor(89,6);
         display.setTextColor(SSD1306_BLACK);
@@ -358,13 +365,12 @@ void loop() {
       if (selected == sourceC) {
         //triangle shape to cut the solid box
         display.fillTriangle(118, 0, 128, 0, 128, 10, SSD1306_BLACK);
-        display.fillRect(65, 6, 5, 7, SSD1306_WHITE); // fill for small box
+        display.fillCircle(66, 9, 3, SSD1306_WHITE); // fill for small box
         display.setTextSize(6);
         display.setCursor(89,6);
         display.setTextColor(SSD1306_BLACK);
         display.print("3");
       }
-
     // Average values of rx1, rx2, rx3 at the bottom
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
@@ -377,7 +383,7 @@ void loop() {
     //RX3
     display.setCursor(100,56);
     display.print(avCC);
-      display.display();
+    display.display();
 #endif
   yield();
 }
