@@ -22,13 +22,15 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_I2CDevice.h>
 
+#define ENABLED_OLED
+//#define ENABLED_SERIAL_DEBUG
+
+#ifdef ENABLED_OLED
 const String PROJECT_NAME_LN1 = "3-Channel Diversity";
 const String PROJECT_NAME_LN2 = "Controller ";
 const String VERSION = "v1.2";
 const String CREATOR = "github/jharwinbarrozo";
-
 const int I2C_DISPLAY_ADDRESS = 0x3C;
-#define ENABLED_OLED
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
@@ -103,6 +105,7 @@ const unsigned char fluxLogo [] PROGMEM = {
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+#endif
 
 #define N 500
 
@@ -152,7 +155,7 @@ class ExpAverage {
 
 //------------------------------------------------------------------------
 ExpAverage A(N), B(N), C(N);// Average video line duration for the different sources
-#ifdef ENABLED_OLED
+#if defined(ENABLED_OLED) || defined(ENABLED_SERIAL_DEBUG)
 ExpAverage AA(N), BB(N), CC(N);// Average video line duration for the different sources
 #endif
 //------------------------------------------------------------------------
@@ -225,7 +228,7 @@ IRAM_ATTR void CountA() {
   const long period = now - lastA;
   lastA = now;
   A.addValue(abs(period - t0));
-#ifdef ENABLED_OLED
+#if defined(ENABLED_OLED) || defined(ENABLED_SERIAL_DEBUG)
   AA.addValue(period);
 #endif
 }
@@ -234,7 +237,7 @@ IRAM_ATTR void CountB() {
   const long period = now - lastB;
   lastB = now;
   B.addValue(abs(period - t0));
-#ifdef ENABLED_OLED
+#if defined(ENABLED_OLED) || defined(ENABLED_SERIAL_DEBUG)
   BB.addValue(period);
 #endif
 }
@@ -243,7 +246,7 @@ IRAM_ATTR void CountC() {
   const long period = now - lastC;
   lastC = now;
   C.addValue(abs(period - t0));
-#ifdef ENABLED_OLED
+#if defined(ENABLED_OLED) || defined(ENABLED_SERIAL_DEBUG)
   CC.addValue(period);
 #endif
 }
@@ -252,6 +255,12 @@ IRAM_ATTR void CountC() {
 void setup() {
  WiFi.mode(WIFI_OFF);
  WiFi.forceSleepBegin();
+
+#ifdef ENABLED_SERIAL_DEBUG
+  Serial.begin(115200);
+  Serial.println("Serial Debug is active.");
+  delay(2000);
+#endif
 
 #ifdef ENABLED_OLED
 // To change the default i2c pins (SDA D2, SCL D1) to TX (gpio1) and RX (gpio3)
@@ -276,7 +285,7 @@ void setup() {
   display.println("Designed by: ");
   display.setCursor(0,52);
   display.print(CREATOR);
-  display.display(); delay(5000);
+  display.display(); delay(3000);
   display.clearDisplay();
   display.drawBitmap(0, 0, fluxLogo, 128, 64, SSD1306_WHITE);
   display.display();
@@ -296,7 +305,7 @@ void setup() {
 
   selected = sourceB;
   //Some blinking to start
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 3; i++) {
     SwitchTo(sourceA); delay(250);
     SwitchTo(sourceB); delay(250);
     SwitchTo(sourceC); delay(250);
@@ -384,6 +393,35 @@ void loop() {
     display.setCursor(100,56);
     display.print(avCC);
     display.display();
+#endif
+
+#ifdef ENABLED_SERIAL_DEBUG
+    if (millis() > lastMillis + 1000) {
+    lastMillis = millis();
+    //Prints some debug information to the serial output, every 1000 milli sec.
+    Serial.print("Time: "); Serial.println(millis());
+    if (selected == sourceA)     Serial.print("=>");
+    Serial.print("RX1:");
+    const float avA = A.getAverage();
+    Serial.print(avA);
+    const float avAA = AA.getAverage();
+    Serial.print(" - "); Serial.println(avAA);
+
+    if (selected == sourceB)     Serial.print("=>");
+    Serial.print("RX2:");
+    const float avB = B.getAverage();
+    Serial.print(avB);
+    const float avBB = BB.getAverage();
+    Serial.print(" - "); Serial.println(avBB);
+
+    if (selected == sourceC)     Serial.print("=>");
+    Serial.print("RX3:");
+    const float avC = C.getAverage();
+    Serial.print(avC);
+    const float avCC = CC.getAverage();
+    Serial.print(" - "); Serial.println(avCC);
+    Serial.println("");
+}
 #endif
   yield();
 }
