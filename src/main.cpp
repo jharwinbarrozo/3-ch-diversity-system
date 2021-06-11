@@ -26,7 +26,7 @@
 //#define ENABLED_SERIAL_DEBUG
 
 #ifdef ENABLED_OLED
-const String PROJECT_NAME_LN1 = "3-Channel Diversity";
+const String PROJECT_NAME_LN1 = "3-CH Diversity";
 const String PROJECT_NAME_LN2 = "Controller ";
 const String VERSION = "v1.2";
 const String CREATOR = "github/jharwinbarrozo";
@@ -276,7 +276,7 @@ void setup() {
   display.setTextSize(1.2);
   display.setTextColor(SSD1306_WHITE);
   display.drawRect(0,0,128,36,WHITE);
-  display.setCursor(8,9);  
+  display.setCursor(20,9);  
   display.print(PROJECT_NAME_LN1);
   display.setCursor(20,19);  
   display.print(PROJECT_NAME_LN2);
